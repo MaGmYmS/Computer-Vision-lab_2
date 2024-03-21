@@ -134,17 +134,20 @@ class ImageProcessingFast:
         """
         Создает ядро фильтра Гаусса заданного размера и сигмой.
         """
-        # Создаем сетку координат
-        x, y = np.meshgrid(np.arange(kernel_size), np.arange(kernel_size))
+        kernel = [[0] * kernel_size for _ in range(kernel_size)]
+        center = kernel_size // 2
 
-        # Рассчитываем расстояние от каждой точки до центра ядра
-        distance_sq = (x - kernel_size // 2) ** 2 + (y - kernel_size // 2) ** 2
-
-        # Вычисляем значения ядра Гаусса
-        kernel = np.exp(-distance_sq / (2 * sigma ** 2)) / (2 * np.pi * sigma ** 2)
+        for x in range(kernel_size):
+            for y in range(kernel_size):
+                # Рассчитываем расстояние от текущей позиции до центра ядра
+                distance_sq = (x - center) ** 2 + (y - center) ** 2
+                kernel[x][y] = (1 / (2 * math.pi * sigma ** 2)) * np.exp(-distance_sq / (2 * sigma ** 2))
 
         # Нормализуем ядро
-        kernel /= np.sum(kernel)
+        total = sum(sum(row) for row in kernel)
+        for x in range(kernel_size):
+            for y in range(kernel_size):
+                kernel[x][y] /= total
 
         return kernel
 
@@ -152,30 +155,23 @@ class ImageProcessingFast:
         filtered_image = np.zeros_like(self.original_image, dtype=float)
 
         # Получаем ядро фильтра Гаусса
-        gaussian = self.gaussian_kernel(kernel_size, sigma)
+        gaussian_kernel = self.gaussian_kernel(kernel_size, sigma)
 
         # Вычисляем половину размера ядра для корректного выравнивания
         half_kernel_size = kernel_size // 2
 
-        padded_image = np.pad(self.original_image,
-                              ((half_kernel_size, half_kernel_size), (half_kernel_size, half_kernel_size), (0, 0)),
-                              mode='constant',
-                              constant_values=0)
+        # Применяем фильтр Гаусса к каждому каналу изображения
+        for channel in range(self.original_image.shape[2]):
+            for y in range(half_kernel_size, self.width_original_image - half_kernel_size):
+                for x in range(half_kernel_size, self.height_original_image - half_kernel_size):
+                    # Вычисляем взвешенную сумму значений пикселей с помощью ядра Гаусса
+                    weighted_sum = 0
+                    for i in range(-half_kernel_size, half_kernel_size + 1):
+                        for j in range(-half_kernel_size, half_kernel_size + 1):
+                            weighted_sum += (self.original_image[y + i, x + j, channel]
+                                             * gaussian_kernel[i + half_kernel_size][j + half_kernel_size])
 
-        # Применяем фильтр к каждому каналу изображения независимо
-        for channel in range(3):
-            for y in range(self.height_original_image):
-                for x in range(self.width_original_image):
-                    # Определяем область изображения для применения фильтра
-                    min_y = max(y - half_kernel_size, 0)
-                    max_y = min(y + half_kernel_size + 1, self.height_original_image)
-                    min_x = max(x - half_kernel_size, 0)
-                    max_x = min(x + half_kernel_size + 1, self.width_original_image)
-
-                    # Вычисляем свертку для текущего пикселя
-                    total = np.sum(padded_image[min_y:max_y, min_x:max_x, channel] * gaussian[:max_y-min_y, :max_x-min_x])
-                    filtered_image[x][y][channel] = total
+                    # Записываем в отфильтрованное изображение полученное значение
+                    filtered_image[y, x, channel] = weighted_sum
 
         return filtered_image
-
-

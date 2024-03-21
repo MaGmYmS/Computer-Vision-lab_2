@@ -149,7 +149,8 @@ class ImageProcessing:
 
         return filtered_image
 
-    def apply_median_filter_single_channel(self, channel, kernel_size):
+    @staticmethod
+    def apply_median_filter_single_channel(channel, kernel_size):
         """
         Применение медианного фильтра к одному каналу изображения.
         """
@@ -199,38 +200,27 @@ class ImageProcessing:
         return kernel
 
     def apply_gaussian_filter(self, kernel_size, sigma):
-        """
-        Применяет фильтр Гаусса к изображению.
-        """
         filtered_image = np.zeros_like(self.original_image, dtype=float)
 
         # Получаем ядро фильтра Гаусса
-        gaussian = self.gaussian_kernel(kernel_size, sigma)
+        gaussian_kernel = self.gaussian_kernel(kernel_size, sigma)
 
         # Вычисляем половину размера ядра для корректного выравнивания
         half_kernel_size = kernel_size // 2
 
-        padded_image = np.pad(self.original_image,
-                              ((kernel_size // 2, kernel_size // 2), (kernel_size // 2, kernel_size // 2), (0, 0)),
-                              mode='constant',
-                              constant_values=0)
+        # Применяем фильтр Гаусса к каждому каналу изображения
+        for channel in range(self.original_image.shape[2]):
+            for y in range(half_kernel_size, self.width_original_image - half_kernel_size):
+                for x in range(half_kernel_size, self.height_original_image - half_kernel_size):
+                    # Вычисляем взвешенную сумму значений пикселей с помощью ядра Гаусса
+                    weighted_sum = 0
+                    for i in range(-half_kernel_size, half_kernel_size + 1):
+                        for j in range(-half_kernel_size, half_kernel_size + 1):
+                            weighted_sum += (self.original_image[y + i, x + j, channel]
+                                             * gaussian_kernel[i + half_kernel_size][j + half_kernel_size])
 
-        # Применяем фильтр к каждому пикселю изображения
-        for y in range(self.height_original_image):
-            for x in range(self.width_original_image):
-                # Определяем область изображения для применения фильтра
-                min_y = max(y - half_kernel_size, 0)
-                max_y = min(y + half_kernel_size + 1, self.height_original_image)
-                min_x = max(x - half_kernel_size, 0)
-                max_x = min(x + half_kernel_size + 1, self.width_original_image)
-
-                # Вычисляем свертку для текущего пикселя
-                total = 0
-                for i in range(min_y - y + half_kernel_size, max_y - y + half_kernel_size):
-                    for j in range(min_x - x + half_kernel_size, max_x - x + half_kernel_size):
-                        total += (padded_image[y + i - half_kernel_size][x + j - half_kernel_size]
-                                  * gaussian[i][j])
-                filtered_image[x][y] = total
+                    # Записываем в отфильтрованное изображение полученное значение
+                    filtered_image[y, x, channel] = weighted_sum
 
         return filtered_image
 
