@@ -242,6 +242,7 @@ class Ui_MainWindow(object):
         self.button_filt_median.clicked.connect(self.button_median_filter_clicked)
         self.button_filt_gauusa.clicked.connect(self.button_gaussian_filter_clicked)
         self.button_filt_sigma.clicked.connect(self.button_sigma_filter_clicked)
+        self.button_map_absolute_diff.clicked.connect(self.button_absolut_diff)
 
         self.button_accept_sharp.clicked.connect(self.button_sharpening_clicked)
 
@@ -399,6 +400,39 @@ class Ui_MainWindow(object):
             sigma_r = self.doubleSpinBox__sigma_sigma.value()
             filtered_image = self.image_processing.apply_sigma_filter(kernel_size, sigma_r)
             self.save_and_display_image(filtered_image, 2)
+        else:
+            self.show_error_message("Ошибка", "Изображение не загружено")
+
+    def button_absolut_diff(self):
+        if self.image_exist:
+            # Получение изображений из графических виджетов
+            image1_path = 'image1_temp.jpg'
+            image2_path = 'image2_temp.jpg'
+            pixmap1 = self.graphicsView_2_1.grab()
+            pixmap2 = self.graphicsView_2_2.grab()
+            pixmap1.save(image1_path)
+            pixmap2.save(image2_path)
+
+            # Загрузка изображений с помощью OpenCV
+            image1 = cv2.imread(image1_path)
+            image2 = cv2.imread(image2_path)
+
+            # Применение абсолютной разности
+            diff_map = self.image_processing.absolute_difference(image1, image2)
+
+            # Проверка на успешность операции
+            if diff_map is None:
+                self.show_error_message("Ошибка", "Не удалось применить абсолютную разность.")
+                return
+
+            # Отображение карты абсолютной разности
+            cv2.imshow('Difference Map', diff_map)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
+            # Удаление временных файлов
+            os.remove(image1_path)
+            os.remove(image2_path)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
 

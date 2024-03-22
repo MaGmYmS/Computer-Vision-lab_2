@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 import math
 
+from PyQt5.QtGui import QImage
+
 
 class ImageProcessingFast:
     def __init__(self, image_path):
@@ -162,14 +164,14 @@ class ImageProcessingFast:
 
         # Применяем фильтр Гаусса к каждому каналу изображения
         for channel in range(3):
-            for y in range(half_kernel_size, self.width_original_image - half_kernel_size):
-                for x in range(half_kernel_size, self.height_original_image - half_kernel_size):
+            for x in range(half_kernel_size, self.width_original_image - half_kernel_size):
+                for y in range(half_kernel_size, self.height_original_image - half_kernel_size):
                     # Вычисляем взвешенную сумму значений пикселей с помощью ядра Гаусса
                     weighted_sum = 0
                     normalization_factor = 0
                     for i in range(-half_kernel_size, half_kernel_size + 1):
                         for j in range(-half_kernel_size, half_kernel_size + 1):
-                            weighted_sum += (self.original_image[y + i, x + j, channel]
+                            weighted_sum += (self.original_image[x + i, y + j, channel]
                                              * gaussian_kernel[i + half_kernel_size][j + half_kernel_size])
                             normalization_factor += gaussian_kernel[i + half_kernel_size][j + half_kernel_size]
 
@@ -177,7 +179,7 @@ class ImageProcessingFast:
                     weighted_sum /= normalization_factor
 
                     # Записываем в отфильтрованное изображение нормированное значение
-                    filtered_image[y, x, 2 - channel] = weighted_sum
+                    filtered_image[x, y, 2 - channel] = weighted_sum
 
         return filtered_image
 
@@ -209,4 +211,27 @@ class ImageProcessingFast:
                     filtered_image[x, y] = np.mean(neighborhood)
 
         return filtered_image
+
+    @staticmethod
+    def absolute_difference(image1_cv, image2_cv):
+        # Проверка на успешную загрузку изображений
+        if image1_cv is None or image2_cv is None:
+            return None
+
+        # Проверка на совпадение размеров изображений
+        if image1_cv.shape != image2_cv.shape:
+            return None
+
+        # Инициализация карты абсолютной разности
+        diff_map = np.zeros_like(image1_cv)
+
+        diff_map = np.abs(image1_cv - image2_cv)
+
+        # Вычисление абсолютной разности для каждого пикселя
+        # for y in range(image1_cv.shape[0]):
+        #     for x in range(image1_cv.shape[1]):
+        #         for c in range(image1_cv.shape[2]):  # Для каждого канала
+        #             diff_map[y, x, c] = abs(int(image1_cv[y, x, c]) - int(image2_cv[y, x, c]))
+
+        return diff_map
 
