@@ -1,3 +1,4 @@
+import copy
 import os
 
 import cv2
@@ -26,7 +27,7 @@ class ImageProcessingFast:
             folder_name = os.path.basename(os.path.dirname(filename))
             image_name = os.path.basename(filename)
             self.original_image = cv2.imread(str(os.path.join(folder_name, image_name)))
-            return self.original_image
+            return copy.deepcopy(self.original_image)
         return None
 
     def logarithmic_transform(self):
@@ -223,9 +224,6 @@ class ImageProcessingFast:
         if image1_cv.shape != image2_cv.shape:
             return None
 
-        # Инициализация карты абсолютной разности
-        diff_map = np.zeros_like(image1_cv)
-
         diff_map = np.abs(image1_cv - image2_cv)
 
         # Вычисление абсолютной разности для каждого пикселя
@@ -234,29 +232,30 @@ class ImageProcessingFast:
         #         for c in range(image1_cv.shape[2]):  # Для каждого канала
         #             diff_map[y, x, c] = abs(int(image1_cv[y, x, c]) - int(image2_cv[y, x, c]))
 
-        return diff_map
+        return diff_map.astype(np.uint8)
 
-    def sharpening(self, image):
-        # Нерезкое маскирование
-        # Для увеличения резкости изображения применяется маска, которая усиливает различия в яркости между
-        # соседними пикселями.
-        kernel_sharpening = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+    def sharpening(self, lambda_sh):
+        if self.process_image is None:
+            print("Сглаженное изображение отсутствует. Сначала примените сглаживание.")
+            return None
 
         # Получаем размеры изображения
-        height, width = image.shape[0], image.shape[1]
+        height, width, channels = self.original_image.shape
 
-        # Создаем пустое изображение для результата
-        sharpened = np.zeros_like(image)
+        # Создаем пустой массив для результирующего изображения
+        sharpened_image = np.zeros((height, width, channels), dtype=np.uint8)
 
-        # Применяем маску к каждому пикселю изображения, кроме краев
-        for y in range(1, height - 1):
-            for x in range(1, width - 1):
-                # Применяем маску к текущему пикселю
-                pixel_sum = 0
-                for i in range(3):
-                    for j in range(3):
-                        pixel_sum += image[y + i - 1][x + j - 1] * kernel_sharpening[i][j]
+        # Применяем увеличение резкости пиксель за пикселем
+        for y in range(height):
+            for x in range(width):
+                for c in range(channels):
+                    # Находим разность между оригинальным и сглаженным пикселем
+                    difference = self.original_image[y, x, c] - self.process_image[y, x, c]
+                    # Умножаем разность на коэффициент увеличения резкости и добавляем к оригинальному пикселю
+                    sharpened_pixel = self.original_image[y, x, c] + lambda_sh * difference
+                    # Ограничиваем значения пикселей до диапазона от 0 до 255
+                    sharpened_pixel = max(0, min(sharpened_pixel, 255))
+                    # Записываем значение пикселя в результирующее изображение
+                    sharpened_image[y, x, c] = sharpened_pixel
 
-                sharpened[y, x] = pixel_sum
-
-        return sharpened
+        return sharpened_image

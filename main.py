@@ -2,6 +2,9 @@ import sys
 import cv2
 import numpy as np
 import os
+
+from PyQt5.QtCore import QElapsedTimer
+
 from ImageProcessing import ImageProcessing
 from ImageProcessingFast import ImageProcessingFast
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -97,6 +100,9 @@ class Ui_MainWindow(object):
         self.button_log_1.setGeometry(QtCore.QRect(10, 40, 201, 41))
         self.button_log_1.setStyleSheet("font: 9pt \"MS Shell Dlg 2\";")
         self.button_log_1.setObjectName("button_log_1")
+        self.console_1 = QtWidgets.QTextBrowser(self.groupBox)
+        self.console_1.setGeometry(QtCore.QRect(10, 510, 201, 151))
+        self.console_1.setObjectName("console_1")
         self.groupBox.raise_()
         self.graphicsView_1_1.raise_()
         self.graphicsView_1_2.raise_()
@@ -182,6 +188,9 @@ class Ui_MainWindow(object):
         self.button_map_absolute_diff.setGeometry(QtCore.QRect(10, 400, 201, 51))
         self.button_map_absolute_diff.setStyleSheet("font: 9pt \"MS Shell Dlg 2\";")
         self.button_map_absolute_diff.setObjectName("button_map_absolute_diff")
+        self.console_2 = QtWidgets.QTextBrowser(self.groupBox_2)
+        self.console_2.setGeometry(QtCore.QRect(10, 510, 201, 151))
+        self.console_2.setObjectName("console_2")
         self.tabWidget.addTab(self.tab_2, "")
         self.tab_5 = QtWidgets.QWidget()
         self.tab_5.setObjectName("tab_5")
@@ -219,6 +228,9 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_lymbda.setMinimum(-5.0)
         self.doubleSpinBox_lymbda.setMaximum(5.0)
         self.doubleSpinBox_lymbda.setObjectName("doubleSpinBox_lymbda")
+        self.console_3 = QtWidgets.QTextBrowser(self.groupBox_5)
+        self.console_3.setGeometry(QtCore.QRect(10, 510, 201, 151))
+        self.console_3.setObjectName("console_3")
         self.button_save_img_5 = QtWidgets.QPushButton(self.tab_5)
         self.button_save_img_5.setGeometry(QtCore.QRect(1310, 720, 291, 61))
         self.button_save_img_5.setObjectName("button_save_img_5")
@@ -233,7 +245,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         # endregion
 
@@ -306,7 +318,8 @@ class Ui_MainWindow(object):
     def load_image(self, choice_sheet):
         filename, _ = QFileDialog.getOpenFileName(None, "Open Image File", "", "Images (*.png *.jpg *.bmp)")
         if filename:  # Проверяем, был ли выбран файл
-            self.image_processing = ImageProcessingFast(filename)
+            if choice_sheet != 4:
+                self.image_processing = ImageProcessingFast(filename)
             # self.image_processing = ImageProcessing(filename)
 
             pixmap = QtGui.QPixmap(filename)  # Создаем QPixmap изображения
@@ -323,7 +336,7 @@ class Ui_MainWindow(object):
                 self.graphicsView_3_1.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
                 self.graphicsView_3_1.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
             elif choice_sheet == 4:
-                self.image_processing.process_image = self.image_processing.load_image()
+                self.image_processing.process_image = self.image_processing.load_image(filename)
                 self.graphicsView_3_2.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
                 self.graphicsView_3_2.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
 
@@ -348,7 +361,7 @@ class Ui_MainWindow(object):
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
 
-    def save_and_display_image(self, transformed_image, choice):
+    def display_image(self, transformed_image, choice):
         # Сохраняем изображение с помощью OpenCV
         cv2.imwrite("transformed_image.png", transformed_image)
 
@@ -371,7 +384,6 @@ class Ui_MainWindow(object):
             case 2:
                 self.graphicsView_2_2.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
                 self.graphicsView_2_2.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
-
             case 3:
                 self.graphicsView_3_2.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
                 self.graphicsView_3_2.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
@@ -396,44 +408,53 @@ class Ui_MainWindow(object):
         error_box.setIcon(QMessageBox.Critical)
         error_box.exec_()
 
-    def button_log_clicked(self):
+    def measure_time_and_run_method(self, method, *args, **kwargs):
         if self.image_exist:
-            logarithmic_transform_image = self.image_processing.logarithmic_transform()
-            self.save_and_display_image(logarithmic_transform_image, 1)
+            timer = QElapsedTimer()
+            timer.start()
+            result = method(*args)
+            elapsed_time = timer.elapsed() / 1000  # Получаем время в секундах
+            match kwargs["choice"]:
+                case 1:
+                    self.console_1.setText(kwargs['message'].format(elapsed_time))
+                case 2:
+                    self.console_2.setText(kwargs['message'].format(elapsed_time))
+                case 3:
+                    self.console_3.setText(kwargs['message'].format(elapsed_time))
+            self.display_image(result, kwargs['choice'])
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
+
+    # region Цветность
+    def button_log_clicked(self):
+        message = "Время работы логарифмического преобразования: {:.2f} с"
+        self.measure_time_and_run_method(self.image_processing.logarithmic_transform, message=message, choice=1)
 
     def button_gamma_clicked(self):
-        if self.image_exist:
-            gamma = self.doubleSpinBox_gamma.value()
-            gamma_transformed_image = self.image_processing.gamma_transform(gamma)
-            self.save_and_display_image(gamma_transformed_image, 1)
-        else:
-            self.show_error_message("Ошибка", "Изображение не загружено")
+        message = "Время работы степенного преобразования: {:.2f} с"
+        gamma = self.doubleSpinBox_gamma.value()
+        self.measure_time_and_run_method(self.image_processing.gamma_transform, gamma, message=message, choice=1)
 
     def button_binary_clicked(self):
-        if self.image_exist:
-            threshold = self.spinbox_exp_porog_1.value()
-            binary_transformed_image = self.image_processing.binary_transform(threshold)
-            self.save_and_display_image(binary_transformed_image, 1)
-        else:
-            self.show_error_message("Ошибка", "Изображение не загружено")
+        message = "Время работы бинарного преобразования: {:.2f} с"
+        threshold = self.spinbox_exp_porog_1.value()
+        self.measure_time_and_run_method(self.image_processing.binary_transform, threshold, message=message, choice=1)
 
     def button_clip_clicked(self):
-        if self.image_exist:
-            lower_bound = self.spinbox_bin_border_1.value()
-            upper_bound = self.spinbox_bin_border_2.value()
-            clipped_image = self.image_processing.clip_image(lower_bound, upper_bound)
-            self.save_and_display_image(clipped_image, 1)
-        else:
-            self.show_error_message("Ошибка", "Изображение не загружено")
+        message = "Время работы обрезки изображения: {:.2f} с"
+        lower_bound = self.spinbox_bin_border_1.value()
+        upper_bound = self.spinbox_bin_border_2.value()
+        self.measure_time_and_run_method(self.image_processing.clip_image, lower_bound, upper_bound, message=message, choice=1)
+    # endregion
 
+    # region Сглаживание
     def button_rectangular_filter_clicked(self):
         if self.image_exist:
             kernel_size_text = self.comboBox_rectangle.currentText()
             kernel_size = int(kernel_size_text)
-            filtered_image = self.image_processing.apply_rectangular_filter(kernel_size)
-            self.save_and_display_image(filtered_image, 2)
+            message = "Время работы прямоугольного фильтра: {:.2f} с"
+            self.measure_time_and_run_method(self.image_processing.apply_rectangular_filter, kernel_size,
+                                             message=message, choice=2)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
 
@@ -441,8 +462,9 @@ class Ui_MainWindow(object):
         if self.image_exist:
             kernel_size_text = self.comboBox_median.currentText()
             kernel_size = int(kernel_size_text)
-            filtered_image = self.image_processing.apply_median_filter(kernel_size)
-            self.save_and_display_image(filtered_image, 2)
+            message = "Время работы медианного фильтра: {:.2f} с"
+            self.measure_time_and_run_method(self.image_processing.apply_median_filter, kernel_size, message=message,
+                                             choice=2)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
 
@@ -451,8 +473,9 @@ class Ui_MainWindow(object):
             kernel_size_text = self.comboBox_gauusa.currentText()
             kernel_size = int(kernel_size_text)
             sigma = self.doubleSpinBox_gauusa_sigma.value()
-            filtered_image = self.image_processing.apply_gaussian_filter(kernel_size, sigma)
-            self.save_and_display_image(filtered_image, 2)
+            message = "Время работы гауссова фильтра: {:.2f} с"
+            self.measure_time_and_run_method(self.image_processing.apply_gaussian_filter, kernel_size, sigma,
+                                             message=message, choice=2)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
 
@@ -461,8 +484,9 @@ class Ui_MainWindow(object):
             kernel_size_text = self.comboBox_sigma.currentText()
             kernel_size = int(kernel_size_text)
             sigma_r = self.doubleSpinBox__sigma_sigma.value()
-            filtered_image = self.image_processing.apply_sigma_filter(kernel_size, sigma_r)
-            self.save_and_display_image(filtered_image, 2)
+            message = "Время работы сигма-фильтра: {:.2f} с"
+            self.measure_time_and_run_method(self.image_processing.apply_sigma_filter, kernel_size, sigma_r,
+                                             message=message, choice=2)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
 
@@ -477,32 +501,26 @@ class Ui_MainWindow(object):
             pixmap2.save(image2_path)
 
             # Загрузка изображений с помощью OpenCV
-            image1 = cv2.imread(image1_path)
-            image2 = cv2.imread(image2_path)
+            image1 = cv2.imread(image1_path).astype(np.int32)
+            image2 = cv2.imread(image2_path).astype(np.int32)
 
             # Применение абсолютной разности
-            diff_map = self.image_processing.absolute_difference(image1, image2)
-
-            # Проверка на успешность операции
-            if diff_map is None:
-                self.show_error_message("Ошибка", "Не удалось применить абсолютную разность.")
-                return
-
-            # Отображение карты абсолютной разности
-            cv2.imshow('Difference Map', diff_map)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            message = "Время работы абсолютной разности: {:.2f} с"
+            self.measure_time_and_run_method(self.image_processing.absolute_difference, image1, image2, message=message,
+                                             choice=2)
 
             # Удаление временных файлов
             os.remove(image1_path)
             os.remove(image2_path)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
+    # endregion
 
     def button_sharpening_clicked(self):
-        if self.image_exist:
-            sharpened_image = self.image_processing.sharpening(self.image_processing.original_image)
-            self.save_and_display_image(sharpened_image, 3)
+        if self.image_exist and self.image_processing.process_image is not None:
+            lambda_sh = self.doubleSpinBox_lymbda.value()
+            message = "Время работы увеличения резкости: {:.2f} с"
+            self.measure_time_and_run_method(self.image_processing.sharpening, lambda_sh, message=message, choice=3)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
 
@@ -515,35 +533,3 @@ if __name__ == "__main__":
 
     MainWindow.show()
     sys.exit(app.exec_())
-
-# Цветность
-# log_transformed, gamma_transformed, binary_transformed, clipped_image_constant = (color_processing(image))
-
-# Сглаживание
-# (rect_filtered_3x3, rect_filtered_5x5, median_filtered_3x3, median_filtered_5x5, gaussian_filtered_3,
-#  gaussian_filtered_5, sigma_filtered_3, sigma_filtered_5) = smoothing(image)
-# (sigma_filtered_3, sigma_filtered_5) = smoothing(image)
-
-# Резкость
-# sharpened = sharpening(image)
-
-# Визуализация результатов
-# cv2.imshow('Original', image)
-
-# cv2.imshow('Log Transformed', log_transformed.astype(np.uint8))
-# cv2.imshow('Gamma Transformed', gamma_transformed.astype(np.uint8))
-# cv2.imshow('Binary Transformed', binary_transformed)
-# cv2.imshow('Clipped Image Constant', clipped_image_constant)
-
-# cv2.imshow('Rect Filtered 3x3', rect_filtered_3x3)
-# cv2.imshow('Rect Filtered 5x5', rect_filtered_5x5)
-# cv2.imshow('Median Filtered 3x3', median_filtered_3x3)
-# cv2.imshow('Median Filtered 5x5', median_filtered_5x5)
-# cv2.imshow('Gaussian Filtered 3', gaussian_filtered_3)
-# cv2.imshow('Gaussian Filtered 5', gaussian_filtered_5)
-# cv2.imshow('Sigma Filtered 3', sigma_filtered_3)
-# cv2.imshow('Sigma Filtered 5', sigma_filtered_5)
-
-# cv2.imshow('Sharpened', sharpened)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
