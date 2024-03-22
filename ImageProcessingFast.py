@@ -10,6 +10,7 @@ from PyQt5.QtGui import QImage
 class ImageProcessingFast:
     def __init__(self, image_path):
         self.original_image = self.load_image(image_path)
+        self.process_image = None
         # Определяем минимальное и максимальное значения яркости в исходном изображении
         self.min_val = np.min(self.original_image)
         self.max_val = np.max(self.original_image)
@@ -235,3 +236,27 @@ class ImageProcessingFast:
 
         return diff_map
 
+    def sharpening(self, image):
+        # Нерезкое маскирование
+        # Для увеличения резкости изображения применяется маска, которая усиливает различия в яркости между
+        # соседними пикселями.
+        kernel_sharpening = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+
+        # Получаем размеры изображения
+        height, width = image.shape[0], image.shape[1]
+
+        # Создаем пустое изображение для результата
+        sharpened = np.zeros_like(image)
+
+        # Применяем маску к каждому пикселю изображения, кроме краев
+        for y in range(1, height - 1):
+            for x in range(1, width - 1):
+                # Применяем маску к текущему пикселю
+                pixel_sum = 0
+                for i in range(3):
+                    for j in range(3):
+                        pixel_sum += image[y + i - 1][x + j - 1] * kernel_sharpening[i][j]
+
+                sharpened[y, x] = pixel_sum
+
+        return sharpened

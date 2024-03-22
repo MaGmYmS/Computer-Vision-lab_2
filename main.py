@@ -33,7 +33,7 @@ class Ui_MainWindow(object):
         self.graphicsView_1_2.setGeometry(QtCore.QRect(240, 10, 700, 700))
         self.graphicsView_1_2.setObjectName("graphicsView_1_2")
         self.button_load_img_1 = QtWidgets.QPushButton(self.tab)
-        self.button_load_img_1.setGeometry(QtCore.QRect(460, 720, 291, 61))
+        self.button_load_img_1.setGeometry(QtCore.QRect(450, 720, 291, 61))
         self.button_load_img_1.setObjectName("button_load_img_1")
         self.button_save_img_1 = QtWidgets.QPushButton(self.tab)
         self.button_save_img_1.setGeometry(QtCore.QRect(1170, 720, 291, 61))
@@ -57,6 +57,7 @@ class Ui_MainWindow(object):
         self.spinbox_exp_porog_1.setGeometry(QtCore.QRect(160, 260, 51, 31))
         self.spinbox_exp_porog_1.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.spinbox_exp_porog_1.setMaximum(255)
+        self.spinbox_exp_porog_1.setProperty("value", 125)
         self.spinbox_exp_porog_1.setObjectName("spinbox_exp_porog_1")
         self.label_2 = QtWidgets.QLabel(self.groupBox)
         self.label_2.setGeometry(QtCore.QRect(20, 260, 81, 31))
@@ -66,6 +67,7 @@ class Ui_MainWindow(object):
         self.spinbox_bin_border_1.setGeometry(QtCore.QRect(160, 370, 51, 31))
         self.spinbox_bin_border_1.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.spinbox_bin_border_1.setMaximum(255)
+        self.spinbox_bin_border_1.setProperty("value", 50)
         self.spinbox_bin_border_1.setObjectName("spinbox_bin_border_1")
         self.label_3 = QtWidgets.QLabel(self.groupBox)
         self.label_3.setGeometry(QtCore.QRect(10, 370, 101, 31))
@@ -75,11 +77,13 @@ class Ui_MainWindow(object):
         self.spinbox_bin_border_2.setGeometry(QtCore.QRect(160, 410, 51, 31))
         self.spinbox_bin_border_2.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.spinbox_bin_border_2.setMaximum(255)
+        self.spinbox_bin_border_2.setProperty("value", 200)
         self.spinbox_bin_border_2.setObjectName("spinbox_bin_border_2")
         self.doubleSpinBox_gamma = QtWidgets.QDoubleSpinBox(self.groupBox)
         self.doubleSpinBox_gamma.setGeometry(QtCore.QRect(160, 150, 51, 31))
         self.doubleSpinBox_gamma.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.doubleSpinBox_gamma.setMaximum(5.0)
+        self.doubleSpinBox_gamma.setProperty("value", 1.0)
         self.doubleSpinBox_gamma.setObjectName("doubleSpinBox_gamma")
         self.label_4 = QtWidgets.QLabel(self.groupBox)
         self.label_4.setGeometry(QtCore.QRect(10, 410, 101, 31))
@@ -111,7 +115,7 @@ class Ui_MainWindow(object):
         self.button_save_img_2.setGeometry(QtCore.QRect(1170, 720, 291, 61))
         self.button_save_img_2.setObjectName("button_save_img_2")
         self.button_load_img_2 = QtWidgets.QPushButton(self.tab_2)
-        self.button_load_img_2.setGeometry(QtCore.QRect(460, 720, 291, 61))
+        self.button_load_img_2.setGeometry(QtCore.QRect(450, 720, 291, 61))
         self.button_load_img_2.setObjectName("button_load_img_2")
         self.groupBox_2 = QtWidgets.QGroupBox(self.tab_2)
         self.groupBox_2.setGeometry(QtCore.QRect(10, 30, 221, 681))
@@ -155,7 +159,9 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_gauusa_sigma = QtWidgets.QDoubleSpinBox(self.groupBox_2)
         self.doubleSpinBox_gauusa_sigma.setGeometry(QtCore.QRect(160, 240, 51, 31))
         self.doubleSpinBox_gauusa_sigma.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.doubleSpinBox_gauusa_sigma.setMinimum(0.01)
         self.doubleSpinBox_gauusa_sigma.setMaximum(5.0)
+        self.doubleSpinBox_gauusa_sigma.setProperty("value", 1.0)
         self.doubleSpinBox_gauusa_sigma.setObjectName("doubleSpinBox_gauusa_sigma")
         self.label_9 = QtWidgets.QLabel(self.groupBox_2)
         self.label_9.setGeometry(QtCore.QRect(50, 240, 131, 31))
@@ -164,10 +170,12 @@ class Ui_MainWindow(object):
         self.doubleSpinBox__sigma_sigma = QtWidgets.QDoubleSpinBox(self.groupBox_2)
         self.doubleSpinBox__sigma_sigma.setGeometry(QtCore.QRect(160, 350, 51, 31))
         self.doubleSpinBox__sigma_sigma.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.doubleSpinBox__sigma_sigma.setMinimum(0.01)
         self.doubleSpinBox__sigma_sigma.setMaximum(5.0)
+        self.doubleSpinBox__sigma_sigma.setProperty("value", 1.0)
         self.doubleSpinBox__sigma_sigma.setObjectName("doubleSpinBox__sigma_sigma")
         self.label_10 = QtWidgets.QLabel(self.groupBox_2)
-        self.label_10.setGeometry(QtCore.QRect(50, 350, 131, 31))
+        self.label_10.setGeometry(QtCore.QRect(50, 350, 81, 31))
         self.label_10.setStyleSheet("font: 12pt \"MS Shell Dlg 2\";")
         self.label_10.setObjectName("label_10")
         self.button_map_absolute_diff = QtWidgets.QPushButton(self.groupBox_2)
@@ -180,14 +188,14 @@ class Ui_MainWindow(object):
         self.graphicsView_3_2 = QtWidgets.QGraphicsView(self.tab_5)
         self.graphicsView_3_2.setGeometry(QtCore.QRect(950, 10, 700, 700))
         self.graphicsView_3_2.setObjectName("graphicsView_3_2")
-        self.button_save_img_5 = QtWidgets.QPushButton(self.tab_5)
-        self.button_save_img_5.setGeometry(QtCore.QRect(1170, 720, 291, 61))
-        self.button_save_img_5.setObjectName("button_save_img_5")
+        self.button_load_img_5_1 = QtWidgets.QPushButton(self.tab_5)
+        self.button_load_img_5_1.setGeometry(QtCore.QRect(1010, 720, 291, 61))
+        self.button_load_img_5_1.setObjectName("button_load_img_5_1")
         self.graphicsView_3_1 = QtWidgets.QGraphicsView(self.tab_5)
         self.graphicsView_3_1.setGeometry(QtCore.QRect(240, 10, 700, 700))
         self.graphicsView_3_1.setObjectName("graphicsView_3_1")
         self.button_load_img_5 = QtWidgets.QPushButton(self.tab_5)
-        self.button_load_img_5.setGeometry(QtCore.QRect(460, 720, 291, 61))
+        self.button_load_img_5.setGeometry(QtCore.QRect(450, 720, 291, 61))
         self.button_load_img_5.setObjectName("button_load_img_5")
         self.groupBox_5 = QtWidgets.QGroupBox(self.tab_5)
         self.groupBox_5.setGeometry(QtCore.QRect(10, 30, 221, 671))
@@ -208,8 +216,12 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_lymbda = QtWidgets.QDoubleSpinBox(self.groupBox_5)
         self.doubleSpinBox_lymbda.setGeometry(QtCore.QRect(160, 110, 51, 31))
         self.doubleSpinBox_lymbda.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.doubleSpinBox_lymbda.setMinimum(-5.0)
         self.doubleSpinBox_lymbda.setMaximum(5.0)
         self.doubleSpinBox_lymbda.setObjectName("doubleSpinBox_lymbda")
+        self.button_save_img_5 = QtWidgets.QPushButton(self.tab_5)
+        self.button_save_img_5.setGeometry(QtCore.QRect(1310, 720, 291, 61))
+        self.button_save_img_5.setObjectName("button_save_img_5")
         self.tabWidget.addTab(self.tab_5, "")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -225,9 +237,10 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         # endregion
 
-        self.button_load_img_1.clicked.connect(self.load_image)
-        self.button_load_img_2.clicked.connect(self.load_image)
-        self.button_load_img_5.clicked.connect(self.load_image)
+        self.button_load_img_1.clicked.connect(lambda: self.load_image(1))
+        self.button_load_img_2.clicked.connect(lambda: self.load_image(2))
+        self.button_load_img_5.clicked.connect(lambda: self.load_image(3))
+        self.button_load_img_5_1.clicked.connect(lambda: self.load_image(4))
 
         self.button_save_img_1.clicked.connect(lambda: self.save_image(1))
         self.button_save_img_2.clicked.connect(lambda: self.save_image(2))
@@ -246,7 +259,51 @@ class Ui_MainWindow(object):
 
         self.button_accept_sharp.clicked.connect(self.button_sharpening_clicked)
 
-    def load_image(self):
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.button_load_img_1.setText(_translate("MainWindow", "Загрузить изображение"))
+        self.button_save_img_1.setText(_translate("MainWindow", "Сохранить изображение"))
+        self.groupBox.setTitle(_translate("MainWindow", "Преобразование"))
+        self.button_exp_1.setText(_translate("MainWindow", "Степенное"))
+        self.button_bin_1.setText(_translate("MainWindow", "Бинарное"))
+        self.label.setText(_translate("MainWindow", "Гамма"))
+        self.label_2.setText(_translate("MainWindow", "Порог"))
+        self.label_3.setText(_translate("MainWindow", "Левая граница"))
+        self.label_4.setText(_translate("MainWindow", "Правая граница"))
+        self.button_cut_bright.setText(_translate("MainWindow", "Вырезание яркости"))
+        self.button_log_1.setText(_translate("MainWindow", "Логарифмическое"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Цветность"))
+        self.button_save_img_2.setText(_translate("MainWindow", "Сохранить изображение"))
+        self.button_load_img_2.setText(_translate("MainWindow", "Загрузить изображение"))
+        self.groupBox_2.setTitle(_translate("MainWindow", "Фильтр"))
+        self.button_filt_rectangle.setText(_translate("MainWindow", "Прямоугольный"))
+        self.button_filt_median.setText(_translate("MainWindow", "Медианный"))
+        self.button_filt_gauusa.setText(_translate("MainWindow", "Гаусса"))
+        self.button_filt_sigma.setText(_translate("MainWindow", "Сигма"))
+        self.comboBox_rectangle.setItemText(0, _translate("MainWindow", "3"))
+        self.comboBox_rectangle.setItemText(1, _translate("MainWindow", "5"))
+        self.comboBox_median.setItemText(0, _translate("MainWindow", "3"))
+        self.comboBox_median.setItemText(1, _translate("MainWindow", "5"))
+        self.comboBox_gauusa.setItemText(0, _translate("MainWindow", "3"))
+        self.comboBox_gauusa.setItemText(1, _translate("MainWindow", "5"))
+        self.comboBox_sigma.setItemText(0, _translate("MainWindow", "3"))
+        self.comboBox_sigma.setItemText(1, _translate("MainWindow", "5"))
+        self.label_9.setText(_translate("MainWindow", "Сигма"))
+        self.label_10.setText(_translate("MainWindow", "Сигма"))
+        self.button_map_absolute_diff.setText(_translate("MainWindow", "Карта абсолютной разности"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Сглаживание"))
+        self.button_load_img_5_1.setText(_translate("MainWindow", "Загрузить изображение"))
+        self.button_load_img_5.setText(_translate("MainWindow", "Загрузить изображение"))
+        self.groupBox_5.setTitle(_translate("MainWindow", "Резкость"))
+        self.button_accept_sharp.setText(_translate("MainWindow", "Применить"))
+        self.comboBox_sharp.setItemText(0, _translate("MainWindow", "3"))
+        self.comboBox_sharp.setItemText(1, _translate("MainWindow", "5"))
+        self.label_11.setText(_translate("MainWindow", "Лямбда"))
+        self.button_save_img_5.setText(_translate("MainWindow", "Сохранить изображение"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("MainWindow", "Резкость"))
+
+    def load_image(self, choice_sheet):
         filename, _ = QFileDialog.getOpenFileName(None, "Open Image File", "", "Images (*.png *.jpg *.bmp)")
         if filename:  # Проверяем, был ли выбран файл
             self.image_processing = ImageProcessingFast(filename)
@@ -255,14 +312,20 @@ class Ui_MainWindow(object):
             pixmap = QtGui.QPixmap(filename)  # Создаем QPixmap изображения
             scene = QtWidgets.QGraphicsScene()  # Создаем QGraphicsScene
             scene.addPixmap(pixmap)  # Добавляем QPixmap в QGraphicsScene
-            self.graphicsView_1_2.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
-            self.graphicsView_2_1.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
-            self.graphicsView_3_1.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
 
-            # Подгоняем изображение к размеру graphicsView
-            self.graphicsView_1_2.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
-            self.graphicsView_2_1.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
-            self.graphicsView_3_1.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
+            if choice_sheet == 1:
+                self.graphicsView_1_2.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
+                self.graphicsView_1_2.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
+            elif choice_sheet == 2:
+                self.graphicsView_2_1.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
+                self.graphicsView_2_1.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
+            elif choice_sheet == 3:
+                self.graphicsView_3_1.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
+                self.graphicsView_3_1.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
+            elif choice_sheet == 4:
+                self.image_processing.process_image = self.image_processing.load_image()
+                self.graphicsView_3_2.setScene(scene)  # Устанавливаем QGraphicsScene в QGraphicsView
+                self.graphicsView_3_2.fitInView(scene.sceneRect(), QtCore.Qt.KeepAspectRatio)
 
             self.image_exist = True
 
@@ -442,49 +505,6 @@ class Ui_MainWindow(object):
             self.save_and_display_image(sharpened_image, 3)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
-
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.button_load_img_1.setText(_translate("MainWindow", "Загрузить изображение"))
-        self.button_save_img_1.setText(_translate("MainWindow", "Сохранить изображение"))
-        self.groupBox.setTitle(_translate("MainWindow", "Преобразование"))
-        self.button_exp_1.setText(_translate("MainWindow", "Степенное"))
-        self.button_bin_1.setText(_translate("MainWindow", "Бинарное"))
-        self.label.setText(_translate("MainWindow", "Гамма"))
-        self.label_2.setText(_translate("MainWindow", "Порог"))
-        self.label_3.setText(_translate("MainWindow", "Левая граница"))
-        self.label_4.setText(_translate("MainWindow", "Правая граница"))
-        self.button_cut_bright.setText(_translate("MainWindow", "Вырезание яркости"))
-        self.button_log_1.setText(_translate("MainWindow", "Логарифмическое"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Цветность"))
-        self.button_save_img_2.setText(_translate("MainWindow", "Сохранить изображение"))
-        self.button_load_img_2.setText(_translate("MainWindow", "Загрузить изображение"))
-        self.groupBox_2.setTitle(_translate("MainWindow", "Фильтр"))
-        self.button_filt_rectangle.setText(_translate("MainWindow", "Прямоугольный"))
-        self.button_filt_median.setText(_translate("MainWindow", "Медианный"))
-        self.button_filt_gauusa.setText(_translate("MainWindow", "Гаусса"))
-        self.button_filt_sigma.setText(_translate("MainWindow", "Сигма"))
-        self.comboBox_rectangle.setItemText(0, _translate("MainWindow", "3"))
-        self.comboBox_rectangle.setItemText(1, _translate("MainWindow", "5"))
-        self.comboBox_median.setItemText(0, _translate("MainWindow", "3"))
-        self.comboBox_median.setItemText(1, _translate("MainWindow", "5"))
-        self.comboBox_gauusa.setItemText(0, _translate("MainWindow", "3"))
-        self.comboBox_gauusa.setItemText(1, _translate("MainWindow", "5"))
-        self.comboBox_sigma.setItemText(0, _translate("MainWindow", "3"))
-        self.comboBox_sigma.setItemText(1, _translate("MainWindow", "5"))
-        self.label_9.setText(_translate("MainWindow", "Сигма"))
-        self.label_10.setText(_translate("MainWindow", "Сигма"))
-        self.button_map_absolute_diff.setText(_translate("MainWindow", "Карта абсолютной разности"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Сглаживание"))
-        self.button_save_img_5.setText(_translate("MainWindow", "Сохранить изображение"))
-        self.button_load_img_5.setText(_translate("MainWindow", "Загрузить изображение"))
-        self.groupBox_5.setTitle(_translate("MainWindow", "Резкость"))
-        self.button_accept_sharp.setText(_translate("MainWindow", "Применить"))
-        self.comboBox_sharp.setItemText(0, _translate("MainWindow", "3"))
-        self.comboBox_sharp.setItemText(1, _translate("MainWindow", "5"))
-        self.label_11.setText(_translate("MainWindow", "Лямбда"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("MainWindow", "Резкость"))
 
 
 if __name__ == "__main__":
