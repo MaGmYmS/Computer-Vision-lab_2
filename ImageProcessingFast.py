@@ -89,13 +89,13 @@ class ImageProcessingFast:
         # Применяем свертку к каждому каналу RGB
         for c in range(3):  # 3 канала для RGB
             # Применяем фильтр
-            for i in range(filtered_image.shape[0]):
-                for j in range(filtered_image.shape[1]):
+            for i in range(self.width_original_image):
+                for j in range(self.height_original_image):
                     # Определяем область изображения для применения фильтра
                     region = padded_image[i:i + kernel_size, j:j + kernel_size, c]
                     # Применяем ядро к области и записываем результат
                     filtered_pixel = np.sum(region * kernel)
-                    filtered_image[i, j, c] = filtered_pixel
+                    filtered_image[i, j, 2 - c] = filtered_pixel
 
         return filtered_image
 
@@ -125,7 +125,7 @@ class ImageProcessingFast:
                     median_value = np.median(neighborhood)
 
                     # Применяем медианный фильтр
-                    filtered_image[i, j, c] = median_value
+                    filtered_image[i, j, 2 - c] = median_value
 
         return filtered_image
 
@@ -161,17 +161,23 @@ class ImageProcessingFast:
         half_kernel_size = kernel_size // 2
 
         # Применяем фильтр Гаусса к каждому каналу изображения
-        for channel in range(self.original_image.shape[2]):
+        for channel in range(3):
             for y in range(half_kernel_size, self.width_original_image - half_kernel_size):
                 for x in range(half_kernel_size, self.height_original_image - half_kernel_size):
                     # Вычисляем взвешенную сумму значений пикселей с помощью ядра Гаусса
                     weighted_sum = 0
+                    normalization_factor = 0
                     for i in range(-half_kernel_size, half_kernel_size + 1):
                         for j in range(-half_kernel_size, half_kernel_size + 1):
                             weighted_sum += (self.original_image[y + i, x + j, channel]
                                              * gaussian_kernel[i + half_kernel_size][j + half_kernel_size])
+                            normalization_factor += gaussian_kernel[i + half_kernel_size][j + half_kernel_size]
 
-                    # Записываем в отфильтрованное изображение полученное значение
-                    filtered_image[y, x, channel] = weighted_sum
+                    # Нормируем значение weighted_sum
+                    weighted_sum /= normalization_factor
+
+                    # Записываем в отфильтрованное изображение нормированное значение
+                    filtered_image[y, x, 2 - channel] = weighted_sum
 
         return filtered_image
+

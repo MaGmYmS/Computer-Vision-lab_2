@@ -377,8 +377,7 @@ class Ui_MainWindow(object):
         if self.image_exist:
             kernel_size_text = self.comboBox_median.currentText()
             kernel_size = int(kernel_size_text)
-            filtered_image = self.image_processing.apply_median_filter(self.image_processing.original_image,
-                                                                       kernel_size)
+            filtered_image = self.image_processing.apply_median_filter(kernel_size)
             self.save_and_display_image(filtered_image, 2)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
