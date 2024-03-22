@@ -181,3 +181,32 @@ class ImageProcessingFast:
 
         return filtered_image
 
+    def apply_sigma_filter(self, kernel_size, sigma_threshold):
+        """
+        Сигма-фильтр для обработки изображений.
+        """
+        filtered_image = np.zeros_like(self.original_image)
+
+        # Применяем фильтр к каждому пикселю изображения
+        for x in range(self.width_original_image):
+            for y in range(self.height_original_image):
+                # Определяем границы окна для текущего пикселя
+                y_min = max(0, y - kernel_size // 2)
+                y_max = min(self.height_original_image, y + kernel_size // 2 + 1)
+                x_min = max(0, x - kernel_size // 2)
+                x_max = min(self.width_original_image, x + kernel_size // 2 + 1)
+
+                # Вычисляем стандартное отклонение в окрестности пикселя
+                neighborhood = self.original_image[x_min:x_max, y_min:y_max]
+                sigma = np.std(neighborhood)
+
+                # Применяем фильтр
+                if sigma < sigma_threshold:
+                    # Пиксель считается краевым, оставляем без изменений
+                    filtered_image[x, y] = self.original_image[x, y]
+                else:
+                    # Пиксель считается шумовым, заменяем на среднее значение в окрестности
+                    filtered_image[x, y] = np.mean(neighborhood)
+
+        return filtered_image
+

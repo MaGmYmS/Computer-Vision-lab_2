@@ -397,8 +397,7 @@ class Ui_MainWindow(object):
             kernel_size_text = self.comboBox_sigma.currentText()
             kernel_size = int(kernel_size_text)
             sigma_r = self.doubleSpinBox__sigma_sigma.value()
-            filtered_image = self.image_processing.apply_sigma_filter(self.image_processing.original_image, kernel_size,
-                                                                      sigma_r)
+            filtered_image = self.image_processing.apply_sigma_filter(kernel_size, sigma_r)
             self.save_and_display_image(filtered_image, 2)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
