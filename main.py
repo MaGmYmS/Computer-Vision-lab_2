@@ -430,8 +430,9 @@ class Ui_MainWindow(object):
                     self.console_1.setText(kwargs['message'].format(elapsed_time))
                 case 2:
                     self.console_2.setText(kwargs['message'].format(elapsed_time))
-                    self.sharpness_factor_1_1.setValue(self.image_processing.compute_sharpness_coefficient(
-                        self.image_processing.original_image, result))
+                    if method.__name__ != self.image_processing.absolute_difference.__name__:
+                        self.sharpness_factor_1_1.setValue(self.image_processing.compute_sharpness_coefficient(
+                            self.image_processing.original_image, result))
                 case 3:
                     self.console_3.setText(kwargs['message'].format(elapsed_time))
                     self.sharpness_factor_2_2.setValue(self.image_processing.compute_sharpness_coefficient(
