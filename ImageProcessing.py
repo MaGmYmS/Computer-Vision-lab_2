@@ -101,81 +101,71 @@ class ImageProcessing:
                         clipped_image[i, j, k] = upper_bound
                     else:
                         clipped_image[i, j, k] = self.original_image[i, j, k]
-
-        return clipped_image
+        clipped_image_rgb = cv2.cvtColor(clipped_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+        return clipped_image_rgb
 
     def apply_rectangular_filter(self, kernel_size):
         # Применение прямоугольного фильтра к изображению.
-        # image: numpy.ndarray - исходное изображение,
-        # kernel_size: int - размер ядра (фильтра).
 
-        # Определяем ядро прямоугольного фильтра
+        # Определяем ядро прямоугольного фильтра и его нормировку
         kernel = np.ones((kernel_size, kernel_size), dtype=np.float32) / (kernel_size ** 2)
 
+        # Создаем массив для результата, который будет иметь тот же размер, что и исходное изображение
         filtered_image = np.zeros_like(self.original_image)
 
-        for i in range(self.width_original_image):
-            for j in range(self.height_original_image):
-                # Определяем область изображения для применения фильтра
-                min_i = max(i - kernel_size // 2, 0)
-                max_i = min(i + kernel_size // 2 + 1, self.width_original_image)
-                min_j = max(j - kernel_size // 2, 0)
-                max_j = min(j + kernel_size // 2 + 1, self.height_original_image)
+        # Паддинг изображения, чтобы гарантировать, что мы можем применить фильтр ко всем пикселям
+        padded_image = np.pad(self.original_image,
+                              ((kernel_size // 2, kernel_size // 2), (kernel_size // 2, kernel_size // 2), (0, 0)),
+                              mode='constant')
 
-                # Применяем ядро к области изображения
-                filtered_pixel = 0
-                kernel_sum = 0
-                for k in range(min_i, max_i):
-                    for l in range(min_j, max_j):
-                        filtered_pixel += self.original_image[k, l] * kernel[k - min_i, l - min_j]
-                        kernel_sum += kernel[k - min_i, l - min_j]
+        # Применяем свертку к каждому каналу RGB
+        for c in range(3):  # 3 канала для RGB
+            # Применяем фильтр
+            for i in range(self.width_original_image):
+                for j in range(self.height_original_image):
+                    # Определяем область изображения для применения фильтра
+                    region = padded_image[i:i + kernel_size, j:j + kernel_size, c]
+                    # Применяем ядро к области и записываем результат
+                    filtered_pixel = np.sum(region * kernel)
+                    filtered_image[i, j, c] = filtered_pixel
 
-                filtered_image[i, j] = filtered_pixel / kernel_sum
+        filtered_image_rgb = cv2.cvtColor(filtered_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
 
-        return filtered_image
+        return filtered_image_rgb
 
-    def apply_median_filter(self, image, kernel_size):
+    def apply_median_filter(self, kernel_size):
         """
-        Применение медианного фильтра к изображению.
-        image: numpy.ndarray - исходное цветное изображение,
+        Применение медианный фильтра к изображению.
         kernel_size: int - размер ядра (фильтра).
         """
-        # Применяем медианный фильтр к каждому каналу изображения
-        filtered_channels = [self.apply_median_filter_single_channel(channel, kernel_size) for channel in
-                             image.transpose(2, 0, 1)]
+        # Создаем массив для результата, такого же размера, как исходное изображение
+        filtered_image = np.zeros_like(self.original_image)
 
-        # Объединяем каналы обратно в цветное изображение
-        filtered_image = np.stack(filtered_channels, axis=-1)
+        # Определяем половину размера ядра для корректного выравнивания
+        half_kernel_size = kernel_size // 2
 
-        return filtered_image
+        # Добавляем отступы к изображению
+        padded_image = np.pad(self.original_image,
+                              ((half_kernel_size, half_kernel_size), (half_kernel_size, half_kernel_size), (0, 0)),
+                              mode='edge')
 
-    @staticmethod
-    def apply_median_filter_single_channel(channel, kernel_size):
-        """
-        Применение медианного фильтра к одному каналу изображения.
-        """
-        filtered_channel = np.zeros_like(channel)
+        for c in range(3):  # 3 канала для RGB
+            for i in range(self.width_original_image):
+                for j in range(self.height_original_image):
+                    min_i = i
+                    max_i = i + kernel_size
+                    min_j = j
+                    max_j = j + kernel_size
 
-        for i in range(channel.shape[0]):
-            for j in range(channel.shape[1]):
-                # Определяем область изображения для применения фильтра
-                min_i = max(i - kernel_size // 2, 0)
-                max_i = min(i + kernel_size // 2 + 1, channel.shape[0])
-                min_j = max(j - kernel_size // 2, 0)
-                max_j = min(j + kernel_size // 2 + 1, channel.shape[1])
+                    neighborhood = padded_image[min_i:max_i, min_j:max_j, c]
 
-                # Получаем окрестность пикселя
-                neighborhood = channel[min_i:max_i, min_j:max_j]
+                    median_value = np.median(neighborhood)
 
-                # Вычисляем медиану сортировкой
-                sorted_neighborhood = np.sort(neighborhood.flatten())
-                median_index = len(sorted_neighborhood) // 2
-                median_value = sorted_neighborhood[median_index]
+                    filtered_image[i, j, c] = median_value
 
-                # Применяем медианный фильтр
-                filtered_channel[i, j] = median_value
+        filtered_image_rgb = cv2.cvtColor(filtered_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
 
-        return filtered_channel
+        return filtered_image_rgb
 
     @staticmethod
     def gaussian_kernel(kernel_size, sigma):
@@ -199,71 +189,77 @@ class ImageProcessing:
 
         return kernel
 
-    def apply_gaussian_filter(self, kernel_size, sigma):
-        filtered_image = np.zeros_like(self.original_image, dtype=float)
+    def apply_gaussian_filter(self, sigma):
+        kernel_size = int(sigma * 6 + 1)
+        half_kernel_size = kernel_size // 2
+
+        # Добавляем отступы к изображению
+        padded_image = np.pad(self.original_image,
+                              ((half_kernel_size, half_kernel_size), (half_kernel_size, half_kernel_size), (0, 0)),
+                              mode='edge')
+
+        filtered_image = np.zeros_like(padded_image, dtype=float)
 
         # Получаем ядро фильтра Гаусса
         gaussian_kernel = self.gaussian_kernel(kernel_size, sigma)
 
-        # Вычисляем половину размера ядра для корректного выравнивания
-        half_kernel_size = kernel_size // 2
-
         # Применяем фильтр Гаусса к каждому каналу изображения
-        for channel in range(self.original_image.shape[2]):
-            for y in range(half_kernel_size, self.width_original_image - half_kernel_size):
-                for x in range(half_kernel_size, self.height_original_image - half_kernel_size):
+        for channel in range(3):
+            for x in range(half_kernel_size, padded_image.shape[0] - half_kernel_size):
+                for y in range(half_kernel_size, padded_image.shape[1] - half_kernel_size):
                     # Вычисляем взвешенную сумму значений пикселей с помощью ядра Гаусса
                     weighted_sum = 0
+                    normalization_factor = 0
                     for i in range(-half_kernel_size, half_kernel_size + 1):
                         for j in range(-half_kernel_size, half_kernel_size + 1):
-                            weighted_sum += (self.original_image[y + i, x + j, channel]
-                                             * gaussian_kernel[i + half_kernel_size][j + half_kernel_size])
+                            weighted_sum += (
+                                    padded_image[x + i, y + j, channel] * gaussian_kernel[i + half_kernel_size][
+                                j + half_kernel_size])
+                            normalization_factor += gaussian_kernel[i + half_kernel_size][j + half_kernel_size]
 
-                    # Записываем в отфильтрованное изображение полученное значение
-                    filtered_image[y, x, channel] = weighted_sum
+                    # Нормируем значение weighted_sum
+                    weighted_sum /= normalization_factor
 
-        return filtered_image
+                    # Записываем в отфильтрованное изображение нормированное значение
+                    filtered_image[x, y, channel] = weighted_sum
 
-    def apply_sigma_filter(self, image, kernel_size, sigma_r):
+        # Обрезаем отступы и приводим к RGB формату
+        filtered_image_rgb = cv2.cvtColor(
+            filtered_image[half_kernel_size:-half_kernel_size, half_kernel_size:-half_kernel_size].astype(np.uint8),
+            cv2.COLOR_BGR2RGB)
+
+        return filtered_image_rgb
+
+    def apply_sigma_filter(self, kernel_size, sigma_threshold):
         """
-        Применяет сигма-фильтр к изображению.
+        Сигма-фильтр для обработки изображений.
         """
-
-        # Создаем пустое изображение для результата
         filtered_image = np.zeros_like(self.original_image)
 
-        # Вычисляем половину размера ядра для корректного выравнивания
-        half_kernel_size = kernel_size // 2
-
         # Применяем фильтр к каждому пикселю изображения
-        for y in range(self.height_original_image):
-            for x in range(self.width_original_image):
-                # Определяем область изображения для применения фильтра
-                min_y = max(y - half_kernel_size, 0)
-                max_y = min(y + half_kernel_size + 1, self.height_original_image)
-                min_x = max(x - half_kernel_size, 0)
-                max_x = min(x + half_kernel_size + 1, self.width_original_image)
+        for x in range(self.width_original_image):
+            for y in range(self.height_original_image):
+                # Определяем границы окна для текущего пикселя
+                y_min = max(0, y - kernel_size // 2)
+                y_max = min(self.height_original_image, y + kernel_size // 2 + 1)
+                x_min = max(0, x - kernel_size // 2)
+                x_max = min(self.width_original_image, x + kernel_size // 2 + 1)
 
-                # Получаем окрестность пикселя
-                neighborhood = image[min_y:max_y, min_x:max_x].flatten()
+                # Вычисляем стандартное отклонение в окрестности пикселя
+                neighborhood = self.original_image[x_min:x_max, y_min:y_max]
+                sigma = np.std(neighborhood)
 
-                # Вычисляем веса пикселей по расстоянию от центрального пикселя
-                weights = [self.gaussian_func(image[y][x], pixel, sigma_r) for pixel in neighborhood]
+                # Применяем фильтр
+                if sigma < sigma_threshold:
+                    # Пиксель считается краевым, оставляем без изменений
+                    filtered_image[x, y] = self.original_image[x, y]
+                else:
+                    # Пиксель считается шумовым, заменяем на среднее значение в окрестности
+                    filtered_image[x, y] = np.mean(neighborhood)
 
-                # Применяем взвешенное среднее для получения фильтрованного значения
-                filtered_value = sum(weight * pixel for weight, pixel in zip(weights, neighborhood)) / sum(weights)
+        filtered_image_rgb = cv2.cvtColor(filtered_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
 
-                # Записываем фильтрованное значение в результирующее изображение
-                filtered_image[y][x] = filtered_value
-
-        return filtered_image
-
-    @staticmethod
-    def gaussian_func(x, y, sigma):
-        """
-        Вычисляет значение Гауссовой функции в точке x с заданной сигмой.
-        """
-        return (1 / (2 * math.pi * sigma ** 2)) * (np.exp(- (x - y) ** 2 / (2 * sigma ** 2)))
+        return filtered_image_rgb
 
     # Модуль для резкости
     def sharpening(self, image):

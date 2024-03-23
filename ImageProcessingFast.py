@@ -73,10 +73,17 @@ class ImageProcessingFast:
         return binary_image
 
     def clip_image(self, lower_bound, upper_bound):
-        # Вырезание произвольного диапазона яркостей изображения.
+        # Создаем маски для верхней и нижней границ
+        lower_mask = self.original_image < lower_bound
+        upper_mask = self.original_image > upper_bound
 
-        # Применяем функцию clip к каждому каналу RGB
-        clipped_image = np.clip(self.original_image, lower_bound, upper_bound)
+        # Применяем маски для создания отсеченного изображения
+        clipped_image = np.zeros_like(self.original_image)
+        clipped_image[lower_mask] = lower_bound
+        clipped_image[upper_mask] = upper_bound
+        clipped_image[~(lower_mask | upper_mask)] = self.original_image[~(lower_mask | upper_mask)]
+
+        # Конвертируем изображение в RGB
         clipped_image_rgb = cv2.cvtColor(clipped_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
 
         return clipped_image_rgb
@@ -93,7 +100,7 @@ class ImageProcessingFast:
         # Паддинг изображения, чтобы гарантировать, что мы можем применить фильтр ко всем пикселям
         padded_image = np.pad(self.original_image,
                               ((kernel_size // 2, kernel_size // 2), (kernel_size // 2, kernel_size // 2), (0, 0)),
-                              mode='constant')
+                              mode='edge')
 
         # Применяем свертку к каждому каналу RGB
         for c in range(3):  # 3 канала для RGB
@@ -115,35 +122,26 @@ class ImageProcessingFast:
         Применение медианный фильтра к изображению.
         kernel_size: int - размер ядра (фильтра).
         """
-        # Создаем массив для результата, такого же размера, как исходное изображение
         filtered_image = np.zeros_like(self.original_image)
 
-        # Определяем половину размера ядра для корректного выравнивания
         half_kernel_size = kernel_size // 2
 
-        # Добавляем отступы к изображению
         padded_image = np.pad(self.original_image,
                               ((half_kernel_size, half_kernel_size), (half_kernel_size, half_kernel_size), (0, 0)),
                               mode='edge')
 
-        # Применяем фильтр к каждому каналу изображения
         for c in range(3):  # 3 канала для RGB
-            # Применяем фильтр к каждому пикселю изображения
             for i in range(self.width_original_image):
                 for j in range(self.height_original_image):
-                    # Определяем область изображения для применения фильтра
                     min_i = i
                     max_i = i + kernel_size
                     min_j = j
                     max_j = j + kernel_size
 
-                    # Получаем окрестность пикселя
                     neighborhood = padded_image[min_i:max_i, min_j:max_j, c]
 
-                    # Вычисляем медиану
                     median_value = np.median(neighborhood)
 
-                    # Применяем медианный фильтр
                     filtered_image[i, j, c] = median_value
 
         filtered_image_rgb = cv2.cvtColor(filtered_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
@@ -174,6 +172,8 @@ class ImageProcessingFast:
 
     def apply_gaussian_filter(self, sigma):
         kernel_size = int(sigma * 6 + 1)
+        if kernel_size % 2 == 0:
+            kernel_size += 1
         half_kernel_size = kernel_size // 2
 
         # Добавляем отступы к изображению
@@ -190,15 +190,12 @@ class ImageProcessingFast:
         for channel in range(3):
             for x in range(half_kernel_size, padded_image.shape[0] - half_kernel_size):
                 for y in range(half_kernel_size, padded_image.shape[1] - half_kernel_size):
-                    # Вычисляем взвешенную сумму значений пикселей с помощью ядра Гаусса
-                    weighted_sum = 0
-                    normalization_factor = 0
-                    for i in range(-half_kernel_size, half_kernel_size + 1):
-                        for j in range(-half_kernel_size, half_kernel_size + 1):
-                            weighted_sum += (
-                                        padded_image[x + i, y + j, channel] * gaussian_kernel[i + half_kernel_size][
-                                    j + half_kernel_size])
-                            normalization_factor += gaussian_kernel[i + half_kernel_size][j + half_kernel_size]
+                    region = padded_image[x - half_kernel_size:x + half_kernel_size + 1,
+                             y - half_kernel_size:y + half_kernel_size + 1, channel]
+
+                    weighted_sum = np.sum(region * gaussian_kernel)
+
+                    normalization_factor = np.sum(gaussian_kernel)
 
                     # Нормируем значение weighted_sum
                     weighted_sum /= normalization_factor
@@ -213,11 +210,14 @@ class ImageProcessingFast:
 
         return filtered_image_rgb
 
-    def apply_sigma_filter(self, kernel_size, sigma_threshold):
+    def apply_sigma_filter(self, sigma):
         """
         Сигма-фильтр для обработки изображений.
         """
         filtered_image = np.zeros_like(self.original_image)
+        kernel_size = int(sigma * 6 + 1)
+        if kernel_size % 2 == 0:
+            kernel_size += 1
 
         # Применяем фильтр к каждому пикселю изображения
         for x in range(self.width_original_image):
@@ -230,15 +230,7 @@ class ImageProcessingFast:
 
                 # Вычисляем стандартное отклонение в окрестности пикселя
                 neighborhood = self.original_image[x_min:x_max, y_min:y_max]
-                sigma = np.std(neighborhood)
-
-                # Применяем фильтр
-                if sigma < sigma_threshold:
-                    # Пиксель считается краевым, оставляем без изменений
-                    filtered_image[x, y] = self.original_image[x, y]
-                else:
-                    # Пиксель считается шумовым, заменяем на среднее значение в окрестности
-                    filtered_image[x, y] = np.mean(neighborhood)
+                filtered_image[x, y] = np.mean(neighborhood)
 
         filtered_image_rgb = cv2.cvtColor(filtered_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
 
@@ -271,15 +263,9 @@ class ImageProcessingFast:
 
         # sharpened_image = np.zeros_like(self.original_image)
 
-        original_image = copy.deepcopy(self.original_image)
-        original_image2 = copy.deepcopy(self.original_image)
-        process_image = copy.deepcopy(self.process_image)
-        cv2.imshow("original_image", original_image)
-        cv2.imshow("process_image", process_image)
-
-        difference = original_image - process_image
-        sharpened_image = original_image2 + lambda_sh * difference
-        sharpened_image = np.clip(sharpened_image, 0, 255)
+        difference = (self.original_image - self.process_image)
+        sharpened_image = self.original_image + lambda_sh * difference
+        # sharpened_image = np.clip(sharpened_image, 0, 255)
 
         # # Применяем увеличение резкости пиксель за пикселем
         # for y in range(self.width_original_image):

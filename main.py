@@ -152,16 +152,6 @@ class Ui_MainWindow(object):
         self.comboBox_median.setObjectName("comboBox_median")
         self.comboBox_median.addItem("")
         self.comboBox_median.addItem("")
-        self.comboBox_gauusa = QtWidgets.QComboBox(self.groupBox_2)
-        self.comboBox_gauusa.setGeometry(QtCore.QRect(160, 180, 51, 51))
-        self.comboBox_gauusa.setObjectName("comboBox_gauusa")
-        self.comboBox_gauusa.addItem("")
-        self.comboBox_gauusa.addItem("")
-        self.comboBox_sigma = QtWidgets.QComboBox(self.groupBox_2)
-        self.comboBox_sigma.setGeometry(QtCore.QRect(160, 290, 51, 51))
-        self.comboBox_sigma.setObjectName("comboBox_sigma")
-        self.comboBox_sigma.addItem("")
-        self.comboBox_sigma.addItem("")
         self.doubleSpinBox_gauusa_sigma = QtWidgets.QDoubleSpinBox(self.groupBox_2)
         self.doubleSpinBox_gauusa_sigma.setGeometry(QtCore.QRect(160, 240, 51, 31))
         self.doubleSpinBox_gauusa_sigma.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
@@ -245,7 +235,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         # endregion
 
@@ -297,10 +287,6 @@ class Ui_MainWindow(object):
         self.comboBox_rectangle.setItemText(1, _translate("MainWindow", "5"))
         self.comboBox_median.setItemText(0, _translate("MainWindow", "3"))
         self.comboBox_median.setItemText(1, _translate("MainWindow", "5"))
-        self.comboBox_gauusa.setItemText(0, _translate("MainWindow", "3"))
-        self.comboBox_gauusa.setItemText(1, _translate("MainWindow", "5"))
-        self.comboBox_sigma.setItemText(0, _translate("MainWindow", "3"))
-        self.comboBox_sigma.setItemText(1, _translate("MainWindow", "5"))
         self.label_9.setText(_translate("MainWindow", "Сигма"))
         self.label_10.setText(_translate("MainWindow", "Сигма"))
         self.button_map_absolute_diff.setText(_translate("MainWindow", "Карта абсолютной разности"))
@@ -479,11 +465,9 @@ class Ui_MainWindow(object):
 
     def button_sigma_filter_clicked(self):
         if self.image_exist:
-            kernel_size_text = self.comboBox_sigma.currentText()
-            kernel_size = int(kernel_size_text)
             sigma_r = self.doubleSpinBox__sigma_sigma.value()
             message = "Время работы сигма-фильтра: {:.2f} с"
-            self.measure_time_and_run_method(self.image_processing.apply_sigma_filter, kernel_size, sigma_r,
+            self.measure_time_and_run_method(self.image_processing.apply_sigma_filter, sigma_r,
                                              message=message, choice=2)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
