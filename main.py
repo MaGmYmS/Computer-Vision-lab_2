@@ -181,6 +181,17 @@ class Ui_MainWindow(object):
         self.console_2 = QtWidgets.QTextBrowser(self.groupBox_2)
         self.console_2.setGeometry(QtCore.QRect(10, 510, 201, 151))
         self.console_2.setObjectName("console_2")
+        self.sharpness_factor_1 = QtWidgets.QLabel(self.groupBox_2)
+        self.sharpness_factor_1.setGeometry(QtCore.QRect(20, 470, 121, 31))
+        self.sharpness_factor_1.setStyleSheet("font: 12pt \"MS Shell Dlg 2\";")
+        self.sharpness_factor_1.setObjectName("sharpness_factor_1")
+        self.sharpness_factor_1_1 = QtWidgets.QDoubleSpinBox(self.groupBox_2)
+        self.sharpness_factor_1_1.setGeometry(QtCore.QRect(160, 470, 51, 31))
+        self.sharpness_factor_1_1.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.sharpness_factor_1_1.setMinimum(-100.0)
+        self.sharpness_factor_1_1.setMaximum(100.0)
+        self.sharpness_factor_1_1.setProperty("value", 0.0)
+        self.sharpness_factor_1_1.setObjectName("sharpness_factor_1_1")
         self.tabWidget.addTab(self.tab_2, "")
         self.tab_5 = QtWidgets.QWidget()
         self.tab_5.setObjectName("tab_5")
@@ -221,6 +232,18 @@ class Ui_MainWindow(object):
         self.console_3 = QtWidgets.QTextBrowser(self.groupBox_5)
         self.console_3.setGeometry(QtCore.QRect(10, 510, 201, 151))
         self.console_3.setObjectName("console_3")
+        self.sharpness_factor_2 = QtWidgets.QLabel(self.groupBox_5)
+        self.sharpness_factor_2.setGeometry(QtCore.QRect(20, 470, 121, 31))
+        self.sharpness_factor_2.setStyleSheet("font: 12pt \"MS Shell Dlg 2\";")
+        self.sharpness_factor_2.setObjectName("sharpness_factor_2")
+        self.sharpness_factor_2_2 = QtWidgets.QDoubleSpinBox(self.groupBox_5)
+        self.sharpness_factor_2_2.setGeometry(QtCore.QRect(160, 470, 51, 31))
+        self.sharpness_factor_2_2.setReadOnly(False)
+        self.sharpness_factor_2_2.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.sharpness_factor_2_2.setMinimum(-100.0)
+        self.sharpness_factor_2_2.setMaximum(100.0)
+        self.sharpness_factor_2_2.setProperty("value", 0.0)
+        self.sharpness_factor_2_2.setObjectName("sharpness_factor_2_2")
         self.button_save_img_5 = QtWidgets.QPushButton(self.tab_5)
         self.button_save_img_5.setGeometry(QtCore.QRect(1310, 720, 291, 61))
         self.button_save_img_5.setObjectName("button_save_img_5")
@@ -235,7 +258,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         # endregion
 
@@ -290,6 +313,7 @@ class Ui_MainWindow(object):
         self.label_9.setText(_translate("MainWindow", "Сигма"))
         self.label_10.setText(_translate("MainWindow", "Сигма"))
         self.button_map_absolute_diff.setText(_translate("MainWindow", "Карта абсолютной разности"))
+        self.sharpness_factor_1.setText(_translate("MainWindow", "Коэф. резкости"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Сглаживание"))
         self.button_load_img_5_1.setText(_translate("MainWindow", "Загрузить изображение"))
         self.button_load_img_5.setText(_translate("MainWindow", "Загрузить изображение"))
@@ -298,6 +322,7 @@ class Ui_MainWindow(object):
         self.comboBox_sharp.setItemText(0, _translate("MainWindow", "3"))
         self.comboBox_sharp.setItemText(1, _translate("MainWindow", "5"))
         self.label_11.setText(_translate("MainWindow", "Лямбда"))
+        self.sharpness_factor_2.setText(_translate("MainWindow", "Коэф. резкости"))
         self.button_save_img_5.setText(_translate("MainWindow", "Сохранить изображение"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("MainWindow", "Резкость"))
 
@@ -405,8 +430,12 @@ class Ui_MainWindow(object):
                     self.console_1.setText(kwargs['message'].format(elapsed_time))
                 case 2:
                     self.console_2.setText(kwargs['message'].format(elapsed_time))
+                    self.sharpness_factor_1_1.setValue(self.image_processing.compute_sharpness_coefficient(
+                        self.image_processing.original_image, result))
                 case 3:
                     self.console_3.setText(kwargs['message'].format(elapsed_time))
+                    self.sharpness_factor_2_2.setValue(self.image_processing.compute_sharpness_coefficient(
+                        self.image_processing.original_image, result))
             self.display_image(result, kwargs['choice'])
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
@@ -430,7 +459,9 @@ class Ui_MainWindow(object):
         message = "Время работы обрезки изображения: {:.2f} с"
         lower_bound = self.spinbox_bin_border_1.value()
         upper_bound = self.spinbox_bin_border_2.value()
-        self.measure_time_and_run_method(self.image_processing.clip_image, lower_bound, upper_bound, message=message, choice=1)
+        self.measure_time_and_run_method(self.image_processing.clip_image, lower_bound, upper_bound, message=message,
+                                         choice=1)
+
     # endregion
 
     # region Сглаживание
@@ -496,6 +527,7 @@ class Ui_MainWindow(object):
             os.remove(image2_path)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")
+
     # endregion
 
     def button_sharpening_clicked(self):

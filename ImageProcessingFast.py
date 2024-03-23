@@ -261,25 +261,35 @@ class ImageProcessingFast:
             print("Сглаженное изображение отсутствует. Сначала примените сглаживание.")
             return None
 
-        # sharpened_image = np.zeros_like(self.original_image)
+        difference = (self.original_image.astype(np.float32) - self.process_image.astype(np.float32))
 
-        difference = (self.original_image - self.process_image)
-        sharpened_image = self.original_image + lambda_sh * difference
-        # sharpened_image = np.clip(sharpened_image, 0, 255)
+        sharpened_image = self.original_image.astype(np.float32) + lambda_sh * difference
 
-        # # Применяем увеличение резкости пиксель за пикселем
-        # for y in range(self.width_original_image):
-        #     for x in range(self.height_original_image):
-        #         for c in range(3):
-        #             # Находим разность между оригинальным и сглаженным пикселем
-        #             difference = self.original_image[y, x, c] - self.process_image[y, x, c]
-        #             # Умножаем разность на коэффициент увеличения резкости и добавляем к оригинальному пикселю
-        #             sharpened_pixel = self.original_image[y, x, c] + lambda_sh * difference
-        #             # Ограничиваем значения пикселей до диапазона от 0 до 255
-        #             sharpened_pixel = max(0, min(sharpened_pixel, 255))
-        #             # Записываем значение пикселя в результирующее изображение
-        #             sharpened_image[y, x, 2 - c] = sharpened_pixel
+        # Ограничение значений пикселей в диапазоне [0, 255]
+        sharpened_image = np.clip(sharpened_image, 0, 255)
 
         sharpened_image_rgb = cv2.cvtColor(sharpened_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
 
-        return sharpened_image_rgb.astype(np.uint8)
+        return sharpened_image_rgb
+
+    @staticmethod
+    def compute_sharpness_coefficient(original_image, processed_image):
+        # Проверка на совпадение размеров изображений
+        if original_image.shape != processed_image.shape:
+            raise ValueError("Размеры изображений не совпадают")
+
+        # Вычисление разности изображений
+        difference = processed_image.astype(np.float32) - original_image.astype(np.float32)
+
+        # Вычисление среднеквадратического отклонения (MSE) разности
+        mse = np.mean(np.square(difference))
+
+        # Оценка весовых коэффициентов для всех значений разности
+        unique_values, counts = np.unique(difference, return_counts=True)
+        total_pixels = np.sum(counts)
+        weights = counts / total_pixels
+
+        # Вычисление итогового коэффициента резкости с учетом весов
+        sharpness_coefficient = mse * np.sum(unique_values * weights) / 100
+
+        return sharpness_coefficient
