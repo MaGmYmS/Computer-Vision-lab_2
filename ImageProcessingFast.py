@@ -185,6 +185,7 @@ class ImageProcessingFast:
 
         # Получаем ядро фильтра Гаусса
         gaussian_kernel = self.gaussian_kernel(kernel_size, sigma)
+        gaussian_kernel /= np.sum(gaussian_kernel)
 
         # Применяем фильтр Гаусса к каждому каналу изображения
         for channel in range(3):
@@ -194,11 +195,6 @@ class ImageProcessingFast:
                              y - half_kernel_size:y + half_kernel_size + 1, channel]
 
                     weighted_sum = np.sum(region * gaussian_kernel)
-
-                    normalization_factor = np.sum(gaussian_kernel)
-
-                    # Нормируем значение weighted_sum
-                    weighted_sum /= normalization_factor
 
                     # Записываем в отфильтрованное изображение нормированное значение
                     filtered_image[x, y, channel] = weighted_sum
