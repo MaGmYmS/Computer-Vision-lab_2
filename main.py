@@ -470,11 +470,9 @@ class Ui_MainWindow(object):
 
     def button_gaussian_filter_clicked(self):
         if self.image_exist:
-            kernel_size_text = self.comboBox_gauusa.currentText()
-            kernel_size = int(kernel_size_text)
             sigma = self.doubleSpinBox_gauusa_sigma.value()
             message = "Время работы гауссова фильтра: {:.2f} с"
-            self.measure_time_and_run_method(self.image_processing.apply_gaussian_filter, kernel_size, sigma,
+            self.measure_time_and_run_method(self.image_processing.apply_gaussian_filter, sigma,
                                              message=message, choice=2)
         else:
             self.show_error_message("Ошибка", "Изображение не загружено")

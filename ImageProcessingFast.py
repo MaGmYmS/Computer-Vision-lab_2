@@ -22,12 +22,13 @@ class ImageProcessingFast:
         self.width_original_image = self.original_image.shape[0]
         self.height_original_image = self.original_image.shape[1]
 
-    def load_image(self, filename):
+    @staticmethod
+    def load_image(filename):
         if filename:
             folder_name = os.path.basename(os.path.dirname(filename))
             image_name = os.path.basename(filename)
-            self.original_image = cv2.imread(str(os.path.join(folder_name, image_name)))
-            return copy.deepcopy(self.original_image)
+            original_image = cv2.imread(str(os.path.join(folder_name, image_name)))
+            return copy.deepcopy(original_image)
         return None
 
     def logarithmic_transform(self):
@@ -45,7 +46,9 @@ class ImageProcessingFast:
         # Обработка значений, равных нулю
         log_transformed[np.isnan(log_transformed)] = 0
 
-        return log_transformed
+        log_transformed_rgb = cv2.cvtColor(log_transformed.astype(np.uint8), cv2.COLOR_BGR2RGB)
+
+        return log_transformed_rgb
 
     def gamma_transform(self, gamma):
         # Степенное преобразование изображения.
@@ -57,8 +60,9 @@ class ImageProcessingFast:
 
         c = (self.max_palette - self.min_palette) / (self.max_val ** gamma)
         gamma_transformed = c * (self.original_image.astype(np.float32) ** gamma)
+        gamma_transformed_rgb = cv2.cvtColor(gamma_transformed.astype(np.uint8), cv2.COLOR_BGR2RGB)
 
-        return gamma_transformed
+        return gamma_transformed_rgb
 
     def binary_transform(self, threshold):
         # Преобразование (R + G + B) / 3
@@ -73,8 +77,9 @@ class ImageProcessingFast:
 
         # Применяем функцию clip к каждому каналу RGB
         clipped_image = np.clip(self.original_image, lower_bound, upper_bound)
+        clipped_image_rgb = cv2.cvtColor(clipped_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
 
-        return clipped_image
+        return clipped_image_rgb
 
     def apply_rectangular_filter(self, kernel_size):
         # Применение прямоугольного фильтра к изображению.
@@ -99,9 +104,11 @@ class ImageProcessingFast:
                     region = padded_image[i:i + kernel_size, j:j + kernel_size, c]
                     # Применяем ядро к области и записываем результат
                     filtered_pixel = np.sum(region * kernel)
-                    filtered_image[i, j, 2 - c] = filtered_pixel
+                    filtered_image[i, j, c] = filtered_pixel
 
-        return filtered_image
+        filtered_image_rgb = cv2.cvtColor(filtered_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+
+        return filtered_image_rgb
 
     def apply_median_filter(self, kernel_size):
         """
@@ -129,9 +136,11 @@ class ImageProcessingFast:
                     median_value = np.median(neighborhood)
 
                     # Применяем медианный фильтр
-                    filtered_image[i, j, 2 - c] = median_value
+                    filtered_image[i, j, c] = median_value
 
-        return filtered_image
+        filtered_image_rgb = cv2.cvtColor(filtered_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+
+        return filtered_image_rgb
 
     @staticmethod
     def gaussian_kernel(kernel_size, sigma):
@@ -155,7 +164,8 @@ class ImageProcessingFast:
 
         return kernel
 
-    def apply_gaussian_filter(self, kernel_size, sigma):
+    def apply_gaussian_filter(self, sigma):
+        kernel_size = int(sigma * 6 + 1)
         filtered_image = np.zeros_like(self.original_image, dtype=float)
 
         # Получаем ядро фильтра Гаусса
@@ -181,9 +191,10 @@ class ImageProcessingFast:
                     weighted_sum /= normalization_factor
 
                     # Записываем в отфильтрованное изображение нормированное значение
-                    filtered_image[x, y, 2 - channel] = weighted_sum
+                    filtered_image[x, y, channel] = weighted_sum
+        filtered_image_rgb = cv2.cvtColor(filtered_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
 
-        return filtered_image
+        return filtered_image_rgb
 
     def apply_sigma_filter(self, kernel_size, sigma_threshold):
         """
@@ -212,7 +223,9 @@ class ImageProcessingFast:
                     # Пиксель считается шумовым, заменяем на среднее значение в окрестности
                     filtered_image[x, y] = np.mean(neighborhood)
 
-        return filtered_image
+        filtered_image_rgb = cv2.cvtColor(filtered_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+
+        return filtered_image_rgb
 
     @staticmethod
     def absolute_difference(image1_cv, image2_cv):
@@ -239,23 +252,31 @@ class ImageProcessingFast:
             print("Сглаженное изображение отсутствует. Сначала примените сглаживание.")
             return None
 
-        # Получаем размеры изображения
-        height, width, channels = self.original_image.shape
+        # sharpened_image = np.zeros_like(self.original_image)
 
-        # Создаем пустой массив для результирующего изображения
-        sharpened_image = np.zeros((height, width, channels), dtype=np.uint8)
+        original_image = copy.deepcopy(self.original_image)
+        original_image2 = copy.deepcopy(self.original_image)
+        process_image = copy.deepcopy(self.process_image)
+        cv2.imshow("original_image", original_image)
+        cv2.imshow("process_image", process_image)
 
-        # Применяем увеличение резкости пиксель за пикселем
-        for y in range(height):
-            for x in range(width):
-                for c in range(channels):
-                    # Находим разность между оригинальным и сглаженным пикселем
-                    difference = self.original_image[y, x, c] - self.process_image[y, x, c]
-                    # Умножаем разность на коэффициент увеличения резкости и добавляем к оригинальному пикселю
-                    sharpened_pixel = self.original_image[y, x, c] + lambda_sh * difference
-                    # Ограничиваем значения пикселей до диапазона от 0 до 255
-                    sharpened_pixel = max(0, min(sharpened_pixel, 255))
-                    # Записываем значение пикселя в результирующее изображение
-                    sharpened_image[y, x, c] = sharpened_pixel
+        difference = original_image - process_image
+        sharpened_image = original_image2 + lambda_sh * difference
+        sharpened_image = np.clip(sharpened_image, 0, 255)
 
-        return sharpened_image
+        # # Применяем увеличение резкости пиксель за пикселем
+        # for y in range(self.width_original_image):
+        #     for x in range(self.height_original_image):
+        #         for c in range(3):
+        #             # Находим разность между оригинальным и сглаженным пикселем
+        #             difference = self.original_image[y, x, c] - self.process_image[y, x, c]
+        #             # Умножаем разность на коэффициент увеличения резкости и добавляем к оригинальному пикселю
+        #             sharpened_pixel = self.original_image[y, x, c] + lambda_sh * difference
+        #             # Ограничиваем значения пикселей до диапазона от 0 до 255
+        #             sharpened_pixel = max(0, min(sharpened_pixel, 255))
+        #             # Записываем значение пикселя в результирующее изображение
+        #             sharpened_image[y, x, 2 - c] = sharpened_pixel
+
+        sharpened_image_rgb = cv2.cvtColor(sharpened_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+
+        return sharpened_image_rgb.astype(np.uint8)
