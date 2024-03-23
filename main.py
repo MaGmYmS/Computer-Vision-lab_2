@@ -103,6 +103,10 @@ class Ui_MainWindow(object):
         self.console_1 = QtWidgets.QTextBrowser(self.groupBox)
         self.console_1.setGeometry(QtCore.QRect(10, 510, 201, 151))
         self.console_1.setObjectName("console_1")
+        self.button_cut_bright_2 = QtWidgets.QPushButton(self.groupBox)
+        self.button_cut_bright_2.setGeometry(QtCore.QRect(10, 460, 201, 41))
+        self.button_cut_bright_2.setStyleSheet("font: 9pt \"MS Shell Dlg 2\";")
+        self.button_cut_bright_2.setObjectName("button_cut_bright_2")
         self.groupBox.raise_()
         self.graphicsView_1_1.raise_()
         self.graphicsView_1_2.raise_()
@@ -258,7 +262,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         # endregion
 
@@ -274,7 +278,8 @@ class Ui_MainWindow(object):
         self.button_log_1.clicked.connect(self.button_log_clicked)
         self.button_bin_1.clicked.connect(self.button_binary_clicked)
         self.button_exp_1.clicked.connect(self.button_gamma_clicked)
-        self.button_cut_bright.clicked.connect(self.button_clip_clicked)
+        self.button_cut_bright.clicked.connect(lambda: self.button_clip_clicked(False))
+        self.button_cut_bright_2.clicked.connect(lambda: self.button_clip_clicked(True))
 
         self.button_filt_rectangle.clicked.connect(self.button_rectangular_filter_clicked)
         self.button_filt_median.clicked.connect(self.button_median_filter_clicked)
@@ -298,6 +303,7 @@ class Ui_MainWindow(object):
         self.label_4.setText(_translate("MainWindow", "Правая граница"))
         self.button_cut_bright.setText(_translate("MainWindow", "Вырезание яркости"))
         self.button_log_1.setText(_translate("MainWindow", "Логарифмическое"))
+        self.button_cut_bright_2.setText(_translate("MainWindow", "Вырезание яркости (const)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Цветность"))
         self.button_save_img_2.setText(_translate("MainWindow", "Сохранить изображение"))
         self.button_load_img_2.setText(_translate("MainWindow", "Загрузить изображение"))
@@ -456,12 +462,12 @@ class Ui_MainWindow(object):
         threshold = self.spinbox_exp_porog_1.value()
         self.measure_time_and_run_method(self.image_processing.binary_transform, threshold, message=message, choice=1)
 
-    def button_clip_clicked(self):
+    def button_clip_clicked(self, choice):
         message = "Время работы обрезки изображения: {:.2f} с"
         lower_bound = self.spinbox_bin_border_1.value()
         upper_bound = self.spinbox_bin_border_2.value()
-        self.measure_time_and_run_method(self.image_processing.clip_image, lower_bound, upper_bound, message=message,
-                                         choice=1)
+        self.measure_time_and_run_method(self.image_processing.clip_image, lower_bound, upper_bound, choice,
+                                         message=message, choice=1)
 
     # endregion
 

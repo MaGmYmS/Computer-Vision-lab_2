@@ -72,21 +72,33 @@ class ImageProcessingFast:
 
         return binary_image
 
-    def clip_image(self, lower_bound, upper_bound):
-        # Создаем маски для верхней и нижней границ
-        lower_mask = self.original_image < lower_bound
-        upper_mask = self.original_image > upper_bound
-
+    def clip_image(self, lower_bound, upper_bound, choice):
         # Применяем маски для создания отсеченного изображения
         clipped_image = np.zeros_like(self.original_image)
+        image = self.original_image
+        if choice:
+            image = self.clip_image2(image, lower_bound, upper_bound, 100)
+        # Создаем маски для верхней и нижней границ
+        lower_mask = image < lower_bound
+        upper_mask = image > upper_bound
+
         clipped_image[lower_mask] = lower_bound
         clipped_image[upper_mask] = upper_bound
-        clipped_image[~(lower_mask | upper_mask)] = self.original_image[~(lower_mask | upper_mask)]
+        clipped_image[~(lower_mask | upper_mask)] = image[~(lower_mask | upper_mask)]
 
         # Конвертируем изображение в RGB
         clipped_image_rgb = cv2.cvtColor(clipped_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
 
         return clipped_image_rgb
+
+    @staticmethod
+    def clip_image2(image, lower_bound, upper_bound, constant_value):
+        # Создаем маску для пикселей внутри диапазона
+        inside_mask = (image >= lower_bound) & (image <= upper_bound)
+
+        # Применяем маску для создания отсеченного изображения
+        clipped_image = np.where(inside_mask, constant_value, image)
+        return clipped_image
 
     def apply_rectangular_filter(self, kernel_size):
         # Применение прямоугольного фильтра к изображению.
