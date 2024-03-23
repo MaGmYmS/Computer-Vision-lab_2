@@ -118,19 +118,27 @@ class ImageProcessingFast:
         # Создаем массив для результата, такого же размера, как исходное изображение
         filtered_image = np.zeros_like(self.original_image)
 
+        # Определяем половину размера ядра для корректного выравнивания
+        half_kernel_size = kernel_size // 2
+
+        # Добавляем отступы к изображению
+        padded_image = np.pad(self.original_image,
+                              ((half_kernel_size, half_kernel_size), (half_kernel_size, half_kernel_size), (0, 0)),
+                              mode='edge')
+
         # Применяем фильтр к каждому каналу изображения
         for c in range(3):  # 3 канала для RGB
             # Применяем фильтр к каждому пикселю изображения
             for i in range(self.width_original_image):
                 for j in range(self.height_original_image):
                     # Определяем область изображения для применения фильтра
-                    min_i = max(i - kernel_size // 2, 0)
-                    max_i = min(i + kernel_size // 2 + 1, self.width_original_image)
-                    min_j = max(j - kernel_size // 2, 0)
-                    max_j = min(j + kernel_size // 2 + 1, self.height_original_image)
+                    min_i = i
+                    max_i = i + kernel_size
+                    min_j = j
+                    max_j = j + kernel_size
 
                     # Получаем окрестность пикселя
-                    neighborhood = self.original_image[min_i:max_i, min_j:max_j, c]
+                    neighborhood = padded_image[min_i:max_i, min_j:max_j, c]
 
                     # Вычисляем медиану
                     median_value = np.median(neighborhood)
@@ -166,25 +174,30 @@ class ImageProcessingFast:
 
     def apply_gaussian_filter(self, sigma):
         kernel_size = int(sigma * 6 + 1)
-        filtered_image = np.zeros_like(self.original_image, dtype=float)
+        half_kernel_size = kernel_size // 2
+
+        # Добавляем отступы к изображению
+        padded_image = np.pad(self.original_image,
+                              ((half_kernel_size, half_kernel_size), (half_kernel_size, half_kernel_size), (0, 0)),
+                              mode='edge')
+
+        filtered_image = np.zeros_like(padded_image, dtype=float)
 
         # Получаем ядро фильтра Гаусса
         gaussian_kernel = self.gaussian_kernel(kernel_size, sigma)
 
-        # Вычисляем половину размера ядра для корректного выравнивания
-        half_kernel_size = kernel_size // 2
-
         # Применяем фильтр Гаусса к каждому каналу изображения
         for channel in range(3):
-            for x in range(half_kernel_size, self.width_original_image - half_kernel_size):
-                for y in range(half_kernel_size, self.height_original_image - half_kernel_size):
+            for x in range(half_kernel_size, padded_image.shape[0] - half_kernel_size):
+                for y in range(half_kernel_size, padded_image.shape[1] - half_kernel_size):
                     # Вычисляем взвешенную сумму значений пикселей с помощью ядра Гаусса
                     weighted_sum = 0
                     normalization_factor = 0
                     for i in range(-half_kernel_size, half_kernel_size + 1):
                         for j in range(-half_kernel_size, half_kernel_size + 1):
-                            weighted_sum += (self.original_image[x + i, y + j, channel]
-                                             * gaussian_kernel[i + half_kernel_size][j + half_kernel_size])
+                            weighted_sum += (
+                                        padded_image[x + i, y + j, channel] * gaussian_kernel[i + half_kernel_size][
+                                    j + half_kernel_size])
                             normalization_factor += gaussian_kernel[i + half_kernel_size][j + half_kernel_size]
 
                     # Нормируем значение weighted_sum
@@ -192,7 +205,11 @@ class ImageProcessingFast:
 
                     # Записываем в отфильтрованное изображение нормированное значение
                     filtered_image[x, y, channel] = weighted_sum
-        filtered_image_rgb = cv2.cvtColor(filtered_image.astype(np.uint8), cv2.COLOR_BGR2RGB)
+
+        # Обрезаем отступы и приводим к RGB формату
+        filtered_image_rgb = cv2.cvtColor(
+            filtered_image[half_kernel_size:-half_kernel_size, half_kernel_size:-half_kernel_size].astype(np.uint8),
+            cv2.COLOR_BGR2RGB)
 
         return filtered_image_rgb
 
